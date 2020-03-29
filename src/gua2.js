@@ -27,6 +27,62 @@ var Paddle = function () {
     o.x += o.speed
 
   }
+
+  // 相撞的方法，这里是判断两个图片相撞，参数传入另外一个图片
+  // 判断相撞，所以是返回一个boolean
+  o.collide = function(ball) {
+    // 看传入图片的坐标和原来的图片的坐标
+    if( ball.y + ball.image.height > o.y) {
+      // 条件判断里面的并且，可以写成双重判断
+      if( ball.x > o.x && ball.x < o.x + o.image.width) {
+        // 相撞的时候
+        return true
+      }
+    }
+    return false
+  }
+  return o
+}
+
+// 添加ball元素
+var Ball = function () {
+  var image = imageFromPath('../ball.png')
+  var o = {
+    image: image,
+    x: 100,
+    y: 200,
+    // 对于ball来说，由于会反弹，所以需要两个速度，
+    // 在反弹的时候，x 的坐标不变，但是y 的坐标向反方向移动
+    // 
+    speedX: 5,
+    speedY: 5,
+    fired:false
+  }
+  o.fire = function() {
+    o.fired = true
+  }
+  o.move = function() {
+    // 需要在move里面修改ball的坐标
+    // ball的横纵坐标都需要修改
+    // 坐标加上速度
+    // 根据paddle的想法，需要有一个按键修改状态， f
+    // 然后注册发射的事件 fire
+    // 发射的时候，需要更新横纵坐标 move
+    if (o.fired) {
+      // 需要判断是否撞墙，继续move
+      if (o.x < 0 || o.x + o.image.width > 400) {
+        o.speedX = - o.speedX
+      }
+
+      if (o.y < 0 || o.y + o.image.height> 300) {
+        o.speedY = - o.speedY
+      }
+      // move
+      o.x += o.speedX
+      o.y += o.speedY
+    }
+  }
+
   return o
 }
 
@@ -43,6 +99,11 @@ var GuaGame = function() {
   g.canvas = canvas
   g.context = context
 
+  // 给画布添加元素
+  g.drawImage = function(guaImag) {
+    g.context.drawImage(guaImag.image, guaImag.x, guaImag.y)
+
+  }
   // 定义按键事件状态
   // [event.key] 可以拿到按下的的按键
   // 给按下按键绑定状态，使用定义的 g.keydowns 对象 的 key 赋值
@@ -80,7 +141,7 @@ var GuaGame = function() {
   return g
 }
 
- 
+//  主函数，保持一个函数接口
 var __main = function () {
 
   // 实例化游戏类
@@ -88,6 +149,9 @@ var __main = function () {
 
   // 实例化挡板
   var paddle = Paddle()
+
+  // 实例化一个球
+  var ball = Ball()
 
   // 给对应的按键 绑定 对应的事件
    game.registerActions('a', function() {
@@ -98,12 +162,29 @@ var __main = function () {
     paddle.moveRight()
   })
 
+  // 给 f 注册事件
+  // 点击的时候更新fire的状态
+  // 然后在画布更新的时候更新 ball的坐标然后重新渲染
+  game.registerActions('f', function () {
+    ball.fire()
+  })
+
   // 重写 update函数
+  // 每一次更新paddle坐标的时候，也需要更新ball的坐标
   game.update = function() {
+    //  这个时候需要使ball动
+    ball.move()
+    // 这里是执行相撞以后的方法
+    if (paddle.collide(ball)) {
+      // 判断相撞，就取反坐标
+      ball.speedY = - ball.speedY
+    }
+
   }
-  // 重写draw函数
+  // 重写draw函数，画paddle 还需要画ball
   game.draw = function() {
-    game.context.drawImage(paddle.image, paddle.x, paddle.y)
+    game.drawImage(paddle)
+    game.drawImage(ball)
   }
 }
 
