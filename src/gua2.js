@@ -4,7 +4,6 @@ var log = console.log.bind(console)
 var imageFromPath = function (path) {
   var img = new Image()
   img.src = path
-
   return img
 }
 
@@ -102,7 +101,6 @@ var GuaGame = function() {
   // 给画布添加元素
   g.drawImage = function(guaImag) {
     g.context.drawImage(guaImag.image, guaImag.x, guaImag.y)
-
   }
   // 定义按键事件状态
   // [event.key] 可以拿到按下的的按键
